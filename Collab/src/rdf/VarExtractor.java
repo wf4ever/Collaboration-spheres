@@ -22,6 +22,10 @@ public class VarExtractor {
 		return line.contains("<"+param+">");
 	}
 	
+	public boolean checkAppereanceResource(String line){
+		return line.contains("resource=\"");
+	}
+	
 	public String DatatypeExtract(String line){
 		String result=null;
 		int begin=line.indexOf("<literal datatype=\"http://www.w3.org/2001/XMLSchema#string\">")+60;
@@ -49,6 +53,13 @@ public class VarExtractor {
 		result = line.substring(begin, end);
 		
 		return result;
+	}
+	
+	public String resourceExtract(String line){
+		int n= line.indexOf("resource=\"");
+		line=line.substring(n);
+		String[] s=line.split("\"");
+		return s[1];
 	}
 
 }

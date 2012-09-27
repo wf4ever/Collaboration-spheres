@@ -1,5 +1,15 @@
 package sparql;
 
+import java.net.URI;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+
 public class Queries {
 
 	private String prefix= "PREFIX mecontrib: <http://rdf.myexperiment.org/ontologies/contributions/> " +
@@ -58,6 +68,29 @@ public class Queries {
 	
 	public String getOwner(String resource){
 		return prefix + "Select ?owner where{<"+resource+"> sioc:has_owner ?owner}";
+	}
+	
+//////////////////////////////////////////////////////////////////
+	private String uriBase = "http://www.myexperiment.org";
+	private ClientConfig config = new DefaultClientConfig();
+	private Client client = Client.create(config);
+	private WebResource service = client.resource(getBaseURI());
+
+	private URI getBaseURI() {
+		//el contexto del servicio
+		return UriBuilder.fromUri(
+				uriBase).build();
+	}
+	public String getFriendsREST(String user){
+		String numUser=user.substring(user.lastIndexOf("/")+1);
+		user="http://www.myexperiment.org/user.xml?id="+numUser+"&elements=friends";
+		return service.path("user.xml").queryParam("id", numUser).queryParam("elements","friends").accept(MediaType.TEXT_XML).get(String.class);
+	}
+	
+	public String getWfsREST(String user){
+		String numUser=user.substring(user.lastIndexOf("/")+1);
+		user="http://www.myexperiment.org/user.xml?id="+numUser+"&elements=workflows";
+		return service.path("user.xml").queryParam("id", numUser).queryParam("elements","workflows").accept(MediaType.TEXT_XML).get(String.class);
 	}
 	
 	

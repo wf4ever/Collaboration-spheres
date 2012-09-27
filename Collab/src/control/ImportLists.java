@@ -142,6 +142,21 @@ public class ImportLists {
 
 	private void getDirectFriends(String user) {
 		ArrayList<Element> ind = new ArrayList<Element>();
+		// USING API //
+		/*String rdf = rq.runQuery(q.getFriendsREST(user));
+		Scanner scanner = new Scanner(rdf);
+		String line = null;
+		String input = null;
+		while (scanner.hasNextLine()) {
+			line = scanner.nextLine();
+			if (extractor.checkAppereanceResource(line)) {
+				input = extractor.resourceExtract(line);
+				Element e = new Element(input);
+				e.setDirect(true);
+				ind.add(e);
+			}
+		}*/
+		//USING SPARQL//
 		String rdf = rq.runQuery(q.getFriends(user));
 		Scanner scanner = new Scanner(rdf);
 		String line = null;
@@ -182,6 +197,21 @@ public class ImportLists {
 
 	private void getDirectWorkflows(String user) {
 		ArrayList<Element> ind = new ArrayList<Element>();
+		// USING API //
+		/*String rdf=rq.runQuery(q.getWfsREST(user));
+		Scanner scanner = new Scanner(rdf);
+		String line=null;
+		String input=null;
+		while (scanner.hasNextLine()) {
+		  line = scanner.nextLine();
+		  if (extractor.checkAppereanceResource(line)){
+			  input=extractor.resourceExtract(line);
+			  Element e= new Element(input);
+			  e.setDirect(true);
+			  ind.add(e);
+		  }
+		}*/
+		// USING SPARQL //
 		String rdf=rq.runQuery(q.getWorkflows(user));
 		Scanner scanner = new Scanner(rdf);
 		String line=null;

@@ -52,13 +52,93 @@ public class ImportUsers {
 		//llenar inner
 		fillInner(resources);
 		//el intermedio -> recursos de los del inner
-		fillIntermediate();
+		//fillIntermediateMAL();
+		fillIntermediate(resources.get(0),10);
 		//el outter (top 10)
-		fillOuter();
+		fillOuter(resources.get(0),26);
+		
+	}
+	
+	private void fillIntermediate(String user, int numRecursos){
+		intermediate= new ArrayList<String>();
+		/*if (inner.get(0)=="")
+			fillPossibleInnerContext(user);
+		else*/
+			setContext(user);
+		fillIntermediateResources(user,numRecursos);
+	}
+
+	private void fillPossibleInnerContext(String user) {
+		String rdf = rec.getPossibleContext("?user="+transformXMLuser(user));
+		rdf = extractor.lineSpliter(rdf, "resource");
+		if (rdf != null) {
+			Scanner scanner = new Scanner(rdf);
+			String line = null;
+			String input = null;
+			int contador = 0;
+			while (scanner.hasNextLine()) {
+				line = scanner.nextLine();
+				if (extractor.checkAppereanceXML(line, "resource")) {
+					input = extractor.complexExtract(line, "resource");
+					if (contador < 10) {
+						inner.add(input);
+						contador++;
+					}
+				}
+			}
+		}
+		
 		
 	}
 
-	private void fillIntermediate() {
+	private void fillIntermediateResources(String user, int numRecursos) {
+		intermediate = new ArrayList<String>();
+		String rdf = rec.runQueryContext(recommendSpecific(user,"workflows", numRecursos));
+		rdf = extractor.lineSpliter(rdf, "resource");
+		if (rdf != null) {
+			Scanner scanner = new Scanner(rdf);
+			String line = null;
+			String input = null;
+			int contador = 0;
+			while (scanner.hasNextLine()) {
+				line = scanner.nextLine();
+				if (extractor.checkAppereanceXML(line, "resource")) {
+					input = extractor.complexExtract(line, "resource");
+					if (contador < numRecursos && !appears(input, intermediate) && !appears(input, inner)) {
+						intermediate.add(input);
+						contador++;
+					}
+				}
+			}
+		}
+		
+	}
+
+	private void setContext(String user) {
+		user=transformXMLuser(user);
+		ArrayList<String> resources=new ArrayList<String>();
+		for (String resource:inner){
+			//if r.getType==wf entonces se añader su creador a la lista de friends
+			if (getTypeResource(resource).equals("Workflow")){
+				resources.add(transformXMLwf(resource));
+			}else{
+			 resources.add(transformXMLuser(resource));
+			}
+		}
+		rec.setContext(user,resources);
+	}
+
+	private String transformXMLwf(String resource) {
+		String id= extractID(resource);
+		return "http://www.myexperiment.org/workflow.xml?id="+id;
+	}
+
+	private String transformXMLuser(String resource) {
+		String id= extractID(resource);
+		return "http://www.myexperiment.org/user.xml?id="+id;
+	}
+
+	/*private void fillIntermediateMAL() {
 		intermediate= new ArrayList<String>();
 		int numRecursos=18/inner.size();
 		if (numRecursos==0) numRecursos=1;
@@ -74,7 +154,7 @@ public class ImportUsers {
 	}
 
 	private void getIntermediateRecommendation(String user, int numRecursos) {
-		String rdf = rec.runQuery(recommendGeneral(user,numRecursos));
+		String rdf = rec.runQueryHistoric(recommendGeneral(user,numRecursos));
 		rdf=extractor.lineSpliter(rdf, "resource");
 		Scanner scanner = new Scanner(rdf);
 		String line = null;
@@ -91,9 +171,33 @@ public class ImportUsers {
 			}
 		}	
 		
-	}
+	}*/
 
-	private void fillOuter() {
+	
+	private void fillOuter(String user, int numRecursos) {
+		outter = new ArrayList<String>();
+		String rdf = rec.runQueryHistoric(recommendGeneral(user, numRecursos));
+		rdf = extractor.lineSpliter(rdf, "resource");
+		if (rdf != null) {
+			Scanner scanner = new Scanner(rdf);
+			String line = null;
+			String input = null;
+			int contador = 0;
+			while (scanner.hasNextLine()) {
+				line = scanner.nextLine();
+				if (extractor.checkAppereanceXML(line, "resource")) {
+					input = extractor.complexExtract(line, "resource");
+					if (contador < numRecursos && !appears(input, outter)
+							&& !appears(input, intermediate)
+							&& !appears(input, inner)) {
+						outter.add(input);
+						contador++;
+					}
+				}
+			}
+		}
+	}
+	/*private void fillOuter() {
 		outter= new ArrayList<String>();
 		String rdf = rec.runQuery(recommendGeneral(this.uri,25));
 		rdf=extractor.lineSpliter(rdf, "resource");
@@ -108,10 +212,15 @@ public class ImportUsers {
 			}
 		}	
 		
-	}
+	}*/
 
 	private String recommendGeneral(String uri,int num){
 		return "user/"+extractID(uri)+"?max="+num;
+	}
+	
+	//posibles types son: users, workflows. Tenemos en cuenta que en la esfera interior caben 10.
+	private String recommendSpecific(String uri, String type,int num){
+		return "?user="+transformXMLuser(uri)+"&type="+type+"&max="+num;
 	}
 	
 	private String extractID(String uri) {
